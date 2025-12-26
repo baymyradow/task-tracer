@@ -24,7 +24,7 @@ def load_tasks():
             return []
         
 
-def save_task(tasks):
+def save_tasks(tasks):
     with open(TASKS_JSON, 'w') as file:
         json.dump(tasks, file)
 
@@ -46,23 +46,89 @@ def create_task(description: str):
         'updated_at': formatted_time
     }
     tasks.append(new_task)
-    save_task(tasks)
+    save_tasks(tasks)
     console.print(f'[green]Task created successfully. (ID: {task_id})[/green]')
 
 
 @app.command(name='list')
-def get_tasks_list():
+def get_tasks_list(status: TaskStatus | None = None):
     tasks = load_tasks()
-    table = Table('#', 'Description', 'status', 'created at', 'updated at')
+    if status:
+        tasks = [task for task in tasks if task['status'] == status]
+    if not tasks:
+        console.print('[red]No tasks found.[/red]')
+        return
+
+    table = Table(header_style='bold magenta')
+    table.add_column('#')
+    table.add_column('Description')
+    table.add_column('Status')
+    table.add_column('Created at')
+    table.add_column('Updated at')
+
     for task in tasks:
+        if task['status'] == TaskStatus.TODO:
+            status_color = 'red'
+        elif task['status'] == TaskStatus.INPROGRESS:
+            status_color = 'yellow'
+        elif task['status'] == TaskStatus.DONE:
+            status_color = 'green'
         table.add_row(
             str(task['id']),
             task['description'],
-            task['status'],
+            f'[{status_color}]{task["status"]}[/{status_color}]',
             task['created_at'],
             task['updated_at']
         )
     console.print(table)
+
+@app.command(name='update')
+def update_task(task_id: int, description: str):
+    tasks = load_tasks()
+    for task in tasks:
+        if task['id'] == task_id:
+            task['description'] = description
+            task['updated_at'] = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+            save_tasks(tasks)
+            console.print(f'[green]Task updated successfully. (ID: {task_id})[/green]')
+            return
+    console.print(f'[red]Task not found with given id. (ID: {task_id})[/red]')
+
+
+@app.command(name='delete')
+def delete_task(task_id: int):
+    tasks = load_tasks()
+    for task in tasks:
+        if task['id'] == task_id:
+            tasks.remove(task)
+            save_tasks(tasks)
+            console.print(f'[green]Task deleted successfully. (ID: {task_id})[/green]')
+            return
+    console.print(f'[red]Task not found with given id. (ID: {task_id})[/red]')
+                
+
+def update_task_status(task_id: int, status: TaskStatus):
+    tasks = load_tasks()
+    for task in tasks:
+        if task['id'] == task_id:
+            task['status'] = status
+            task['updated_at'] = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+            save_tasks(tasks)
+            console.print(f'[green]Task status updated successfully. (ID: {task_id})[/green]')
+            return
+    console.print(f'[red]Task not found with given id. (ID: {task_id})[/red]')
+    return
+
+@app.command(name="mark-done")
+def mark_done(task_id: int):
+    return update_task_status(task_id, TaskStatus.DONE)
+
+@app.command(name="mark-in-progress")
+def mark_in_progress(task_id: int):
+    return update_task_status(task_id, TaskStatus.INPROGRESS)
+
+
+
 
 
 
