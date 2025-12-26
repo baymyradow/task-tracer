@@ -107,7 +107,26 @@ def delete_task(task_id: int):
     console.print(f'[red]Task not found with given id. (ID: {task_id})[/red]')
                 
 
-    
+def update_task_status(task_id: int, status: TaskStatus):
+    tasks = load_tasks()
+    for task in tasks:
+        if task['id'] == task_id:
+            task['status'] = status
+            task['updated_at'] = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+            save_tasks(tasks)
+            console.print(f'[green]Task status updated successfully. (ID: {task_id})[/green]')
+            return
+    console.print(f'[red]Task not found with given id. (ID: {task_id})[/red]')
+    return
+
+@app.command(name="mark-done")
+def mark_done(task_id: int):
+    return update_task_status(task_id, TaskStatus.DONE)
+
+@app.command(name="mark-in-progress")
+def mark_in_progress(task_id: int):
+    return update_task_status(task_id, TaskStatus.INPROGRESS)
+
 
 
 
