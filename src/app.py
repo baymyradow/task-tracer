@@ -95,6 +95,16 @@ def update_task(task_id: int, description: str):
     console.print(f'[red]Task not found with given id. (ID: {task_id})[/red]')
 
 
+@app.command(name='delete')
+def delete_task(task_id: int):
+    tasks = load_tasks()
+    for task in tasks:
+        if task['id'] == task_id:
+            tasks.remove(task)
+            save_tasks(tasks)
+            console.print(f'[green]Task deleted successfully. (ID: {task_id})[/green]')
+            return
+    console.print(f'[red]Task not found with given id. (ID: {task_id})[/red]')
                 
 
     
