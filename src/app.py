@@ -88,6 +88,7 @@ def update_task(task_id: int, description: str):
     for task in tasks:
         if task['id'] == task_id:
             task['description'] = description
+            task['updated_at'] = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
             save_tasks(tasks)
             console.print(f'[green]Task updated successfully. (ID: {task_id})[/green]')
             return
